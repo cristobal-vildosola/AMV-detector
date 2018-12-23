@@ -1,0 +1,7 @@
+# videos
+Shippuden/
+Shippuden_car_*/
+
+# project specific
+venv/
+.idea
