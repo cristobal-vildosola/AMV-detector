@@ -124,15 +124,11 @@ def main(salto_frames, tamano):
     :param salto_frames: número de frames que se saltan cada vez que se extraen caracteristicas.
     :param tamano: el tamaño del mapa al cual reducir la dimension de cada frame.
     """
-    caracteristicas_videos('../Shippuden', salto_frames, tamano)
+
+    caracteristicas_videos('../AMV', salto_frames, tamano)
+    # caracteristicas_videos('../Shippuden', salto_frames, tamano)
     return
 
 
 if __name__ == '__main__':
-    # tamaño al cual reducir la imagen
-    tamano_vector = (10, 10)
-
-    # tomar 1 de cada {salto} frames
-    salto = 4
-
-    main(salto, tamano_vector)
+    main(salto_frames=4, tamano=(10, 10))
