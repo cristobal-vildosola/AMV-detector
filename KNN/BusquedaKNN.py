@@ -125,13 +125,14 @@ def main():
     tamano = (10, 10)
 
     t0 = time.time()
-    etiquetas, caracteristicas = agrupar_caracteristicas(f'../Shippuden_car_{tamano}_{salto}', recargar=True)
+    etiquetas, caracteristicas = agrupar_caracteristicas(f'../videos/Shippuden_car_{tamano}_{salto}', recargar=True)
     print(f'la agrupación de datos tomó {int(time.time() - t0)} segundos')
 
-    indice = KDTree(datos=caracteristicas, etiquetas=etiquetas)
+    indice = KDTree(datos=caracteristicas, etiquetas=etiquetas, trees=10)
     print(f'la construcción del kdtree tomó {indice.build_time:.1f} segundos')
 
-    frames_mas_cercanos_video(f'../AMV_car_{tamano}_{salto}/top10handToHand.txt', f'../AMV_cerc_{tamano}_{salto}',
+    frames_mas_cercanos_video(f'../videos/AMV_car_{tamano}_{salto}/top10handToHand.txt',
+                              f'../videos/AMV_cerc_{tamano}_{salto}',
                               indice=indice, checks=100, k=20)
 
 

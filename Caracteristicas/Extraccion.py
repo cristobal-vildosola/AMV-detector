@@ -125,8 +125,8 @@ def main(salto_frames, tamano):
     :param tamano: el tamaño del mapa al cual reducir la dimension de cada frame.
     """
 
-    caracteristicas_videos('../AMV', salto_frames, tamano)
-    # caracteristicas_videos('../Shippuden', salto_frames, tamano)
+    caracteristicas_videos('../videos/AMV', salto_frames, tamano)
+    # caracteristicas_videos('../videos/Shippuden', salto_frames, tamano)
     return
 
 
