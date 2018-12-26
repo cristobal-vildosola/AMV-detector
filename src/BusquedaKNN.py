@@ -5,7 +5,7 @@ from typing import Tuple
 
 import numpy
 
-from KNN.Index import Index, Linear, KDTree
+from src.Index import Index, KDTree
 
 
 def leer_caracteristicas(archivo: str) -> Tuple[numpy.ndarray, numpy.ndarray]:
