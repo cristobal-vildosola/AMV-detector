@@ -90,6 +90,7 @@ def frames_mas_cercanos_video(archivo: str, carpeta_log: str, indice: Index, k: 
     :param carpeta_log: la carpeta en la cual guardar el log.
     :param indice: el índice de busqueda a usar.
     :param k: el número de frames cercanos a buscar.
+    :param checks: el número de checks a realizar en la búsqueda.
     """
 
     # medir tiempo
@@ -108,7 +109,7 @@ def frames_mas_cercanos_video(archivo: str, carpeta_log: str, indice: Index, k: 
 
     # buscar los frames más cercanos de cada frame
     for i in range(caracteristicas_video.shape[0]):
-        cercanos = indice.search(caracteristicas_video[i], k)[0]
+        cercanos = indice.search(caracteristicas_video[i], k=k, checks=checks)[0]
         cercanos_str = ' | '.join([f'{indice.etiquetas[frame]}' for frame in cercanos])
 
         # registrar resultado
@@ -129,7 +130,7 @@ def main():
     print(f'la agrupación de datos tomó {int(time.time() - t0)} segundos')
 
     indice = KDTree(datos=caracteristicas, etiquetas=etiquetas, trees=10)
-    print(f'la construcción del kdtree tomó {indice.build_time:.1f} segundos')
+    print(f'la construcción del índice tomó {indice.build_time:.1f} segundos')
 
     frames_mas_cercanos_video(f'../videos/AMV_car_{tamano}_{salto}/top10handToHand.txt',
                               f'../videos/AMV_cerc_{tamano}_{salto}',

@@ -32,7 +32,7 @@ def leer_cercanos(archivo: str) -> List[Cercanos]:
             tiempo, datos = linea.split(' $ ')
 
             # parsear tiempo y separar frames.
-            tiempo = float(tiempo.split(' # ')[1])
+            tiempo = float(tiempo)
             datos = datos.split(' | ')
 
             # parsear frames.
@@ -84,10 +84,10 @@ class Candidato:
         return
 
 
-def buscar_secuencias(archivo: str, max_errores_continuos=3, tiempo_minimo=1):
+def buscar_secuencias(archivo: str, max_errores_continuos=7, tiempo_minimo=1, rango=0):
     """
     Busca comerciales en un archivo que contiene los k frames más cercanos a cada frame de un video y los registra en
-    un archivo 'respuesta.txt'
+    un archivo.
 
     :param archivo: la ubicación del archivo.
     :param max_errores_continuos: máximos errores continuos para determinar que un clip terminó.
@@ -103,9 +103,10 @@ def buscar_secuencias(archivo: str, max_errores_continuos=3, tiempo_minimo=1):
 
     # lista de candidatos para buscar comerciales
     candidatos = []
+    clips = []
 
     # TODO abrir log
-    # log = open('respuesta.txt', 'a')
+    # log = open('.txt', 'a')
 
     for cercanos in lista_cercanos:
         # se tiene una lista de comerciales para eliminar (especificos) y comerciales completados para eliminar todos
@@ -114,7 +115,7 @@ def buscar_secuencias(archivo: str, max_errores_continuos=3, tiempo_minimo=1):
 
         # buscar secuencias
         for cand in candidatos:
-            cand.buscar_siguiente(cercanos, rango=1)
+            cand.buscar_siguiente(cercanos, rango=rango)
 
             # determinar fin de clip.
             if cand.errores_continuos >= max_errores_continuos:
@@ -124,11 +125,12 @@ def buscar_secuencias(archivo: str, max_errores_continuos=3, tiempo_minimo=1):
         for terminado in terminados:
             candidatos.remove(terminado)
 
-            # TODO determinar que el clip es valido (tiempo?)
+            # determinar que el clip es valido
             if terminado.tiempo_fin - terminado.tiempo_inicio > tiempo_minimo and \
-                    2 * terminado.aciertos >= terminado.errores:
+                    3 * terminado.aciertos >= terminado.errores:
                 print(f'clip detectado: {terminado.tiempo_clip_inicio} {terminado.tiempo_clip_fin} '
                       f'{terminado.video} {terminado.tiempo_inicio} {terminado.tiempo_fin}')
+                clips.append(terminado)
 
         # agregar candidatos. todos?
         for frame in cercanos.frames:
@@ -154,10 +156,9 @@ def main():
     salto = 4
 
     archivo = 'top10handToHand'
-    max_errores_continuos = 35
-    tiempo_minimo = 2
 
-    buscar_secuencias(f'../videos/AMV_cerc_{tamano}_{salto}/{archivo}.txt', max_errores_continuos, tiempo_minimo)
+    buscar_secuencias(f'../videos/AMV_cerc_{tamano}_{salto}/{archivo}.txt',
+                      max_errores_continuos=6, tiempo_minimo=2, rango=0)
     return
 
 

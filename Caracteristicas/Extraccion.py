@@ -67,9 +67,10 @@ def caracteristicas_video(archivo: str, carpeta_log: str, salto_frames: int = 10
         os.mkdir(carpeta_log)
     log = open(f'{carpeta_log}/{nombre}.txt', 'w')
 
-    print(f'extrayendo caracteristicas de video {nombre}')
+    print(f'extrayendo caracteristicas de video {nombre} ({video.get(cv2.CAP_PROP_FPS):.2f} FPS)')
 
     frame_n = 0  # número de frames
+    # TODO cambiar salto frames a frames por segundo (6)
     fps = video.get(cv2.CAP_PROP_FPS)  # frames por segundo (para calcular tiempo)
 
     while video.grab():
@@ -125,10 +126,10 @@ def main(salto_frames, tamano):
     :param tamano: el tamaño del mapa al cual reducir la dimension de cada frame.
     """
 
-    caracteristicas_videos('../videos/AMV', salto_frames, tamano)
-    # caracteristicas_videos('../videos/Shippuden', salto_frames, tamano)
+    caracteristicas_videos('../videos/AMV', 5, tamano)
+    caracteristicas_videos('../videos/Shippuden', salto_frames, tamano)
     return
 
 
 if __name__ == '__main__':
-    main(salto_frames=4, tamano=(10, 10))
+    main(salto_frames=4, tamano=(15, 15))
