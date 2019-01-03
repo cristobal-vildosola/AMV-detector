@@ -5,7 +5,7 @@ from typing import Tuple
 
 import numpy
 
-from src.Index import Index, KDTree
+from src.Indices import Index, KDTree
 
 
 def leer_caracteristicas(archivo: str) -> Tuple[numpy.ndarray, numpy.ndarray]:
@@ -37,13 +37,15 @@ def leer_caracteristicas(archivo: str) -> Tuple[numpy.ndarray, numpy.ndarray]:
     return etiqueta, caracteristicas
 
 
-def agrupar_caracteristicas(carpeta: str, recargar: bool = True) -> Tuple[numpy.ndarray, numpy.ndarray]:
+def agrupar_caracteristicas(carpeta: str, recargar: bool = True, tamano=(10, 10)
+                            ) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
     Agrupa todos los datos de la carpeta dada en 2 arreglos de numpy, 1 para características y otro para etiquetas.
     Finalmente los guarda en archivos para reutilizarlos si se vuelve a intentar agrupar la misma carpeta.
 
-    :param carpeta: carpeta donde están las características que agrupar
-    :param recargar: determina si se deben recargar los archivos previamente generados (si es que existen)
+    :param carpeta: carpeta donde están las características que agrupar.
+    :param recargar: determina si se deben recargar los archivos previamente generados (si es que existen).
+    :param tamano: tamaño del vector de características.
 
     :return: 2 arreglos de numpy, uno para etiquetas y otro para características, en ese orden.
     """
@@ -58,7 +60,7 @@ def agrupar_caracteristicas(carpeta: str, recargar: bool = True) -> Tuple[numpy.
     archivos = os.listdir(carpeta)
 
     etiqueta = numpy.empty(0, dtype=numpy.str)
-    caracteristicas = numpy.empty((0, 100), dtype=numpy.int32)
+    caracteristicas = numpy.empty((0, tamano[0] * tamano[1]), dtype=numpy.int32)
 
     # leer las caracteristicas de todos los videos y agruparlas
     i = 0
@@ -67,7 +69,7 @@ def agrupar_caracteristicas(carpeta: str, recargar: bool = True) -> Tuple[numpy.
             continue
 
         # leer características y juntar con los arreglos.
-        etiqueta_video, caracteristicas_video = leer_caracteristicas(archivo)
+        etiqueta_video, caracteristicas_video = leer_caracteristicas(f'{carpeta}/{archivo}')
         etiqueta = numpy.concatenate((etiqueta, etiqueta_video))
         caracteristicas = numpy.concatenate((caracteristicas, caracteristicas_video))
 
@@ -122,18 +124,20 @@ def frames_mas_cercanos_video(archivo: str, carpeta_log: str, indice: Index, k: 
 
 
 def main():
-    salto = 4
+    fps = 6
     tamano = (10, 10)
+    video = 'cantHoldUs'
 
     t0 = time.time()
-    etiquetas, caracteristicas = agrupar_caracteristicas(f'../videos/Shippuden_car_{tamano}_{salto}', recargar=True)
+    etiquetas, caracteristicas = agrupar_caracteristicas(f'../videos/Shippuden_car_{tamano}_{fps}',
+                                                         recargar=True, tamano=tamano)
     print(f'la agrupación de datos tomó {int(time.time() - t0)} segundos')
 
     indice = KDTree(datos=caracteristicas, etiquetas=etiquetas, trees=10)
     print(f'la construcción del índice tomó {indice.build_time:.1f} segundos')
 
-    frames_mas_cercanos_video(f'../videos/AMV_car_{tamano}_{salto}/top10handToHand.txt',
-                              f'../videos/AMV_cerc_{tamano}_{salto}',
+    frames_mas_cercanos_video(f'../videos/AMV_car_{tamano}_{fps}/{video}.txt',
+                              f'../videos/AMV_cerc_{tamano}_{fps}',
                               indice=indice, checks=100, k=20)
 
 
