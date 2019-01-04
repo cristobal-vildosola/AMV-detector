@@ -1,67 +1,44 @@
-import threading
-
 import cv2
 
-from src.Extraccion import abrir_video
+from Extraccion import abrir_video
 
 
 class Prediccion:
     def __init__(self, video: str, inicio_video: float, capitulo: str, inicio_cap: float, duracion: float):
         self.video = video
         self.inicio_video = inicio_video
+        self.duracion = duracion
 
         self.capitulo = capitulo
         self.inicio_cap = inicio_cap
 
-        self.duracion = duracion
-
         self.correcta = False
-
-
-class VideoThread(threading.Thread):
-    def __init__(self, video: cv2.VideoCapture, nombre: str, tiempo: float, duracion: float):
-        super().__init__()
-        self.video = video
-        self.nombre = nombre
-        self.video.set(cv2.CAP_PROP_POS_MSEC, tiempo)
-        self.duracion = duracion
-
-    def run(self):
-        fps = self.video.get(cv2.CAP_PROP_FPS)
-        tiempo = 0
-        espera_frame = int(1000 / fps)
-        tiempo_frame = 1.0 / fps
-        cv2.namedWindow(self.nombre)
-
-        while tiempo < self.duracion and self.video.isOpened():
-            ret, frame = self.video.read()
-
-            frame = cv2.resize(frame, (640, 358))
-            cv2.imshow(self.nombre, frame)
-
-            cv2.waitKey(espera_frame)
-            tiempo += tiempo_frame
-
-        return
 
 
 def comparar_videos(prediccion: Prediccion):
     amv = abrir_video(f'../videos/AMV/{prediccion.video}.mp4')
     cap = abrir_video(f'../videos/Shippuden/{prediccion.capitulo}.mp4')
 
+    text = f'capitulo {prediccion.capitulo} - {int(prediccion.inicio_video / 60)}:{int(prediccion.inicio_video) % 60}'
+    font = cv2.FONT_HERSHEY_COMPLEX
+    scale = 1
+    thick = 3
+    width, heigth = cv2.getTextSize(text, font, scale, thick)[0]
+
+    # mover videos a puntos de inicio
     amv.set(cv2.CAP_PROP_POS_MSEC, prediccion.inicio_video * 1000)
     cap.set(cv2.CAP_PROP_POS_MSEC, prediccion.inicio_cap * 1000)
 
+    # variables para reproducir videos con fps distintos
+    tiempo = 0
     fps1 = amv.get(cv2.CAP_PROP_FPS)
     fps2 = cap.get(cv2.CAP_PROP_FPS)
-    tiempo = 0
-
     tiempo_frame1 = 1.0 / fps1
     tiempo_frame2 = 1.0 / fps2
-
     siguiente_frame1 = tiempo_frame1
     siguiente_frame2 = tiempo_frame2
 
+    # frames iniciales
     _, frame1 = amv.read()
     _, frame2 = cap.read()
     frame1 = cv2.resize(frame1, (640, 358))
@@ -69,22 +46,28 @@ def comparar_videos(prediccion: Prediccion):
 
     while tiempo < prediccion.duracion and amv.isOpened() and cap.isOpened():
 
+        # avanzar el frame solo cuando pase 1 fps_1 o más
         if tiempo > siguiente_frame1:
             siguiente_frame1 += tiempo_frame1
             _, frame1 = amv.read()
             frame1 = cv2.resize(frame1, (640, 358))
 
+        # avanzar el frame solo cuando pase 1 fps_2 o más
         if tiempo > siguiente_frame2:
             siguiente_frame2 += tiempo_frame2
             _, frame2 = cap.read()
             frame2 = cv2.resize(frame2, (640, 358))
 
+        # concatenar frames y agregar texto
         img = cv2.hconcat([frame1, frame2])
-        cv2.imshow('comparacion resultado', img)
+        cv2.putText(img, text, (int(640 - width / 2), heigth), font, scale, (255, 255, 255), thickness=thick)
+        cv2.imshow(f'resultados {prediccion.video}', img)
 
+        # espera de tiempo
         tiempo += 0.02
         res = cv2.waitKey(20)
 
+        # permitir terminar de manera temprana
         if res & 0xff == ord('y'):
             prediccion.correcta = True
             return

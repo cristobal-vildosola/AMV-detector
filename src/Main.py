@@ -1,10 +1,11 @@
 import time
+import sys
 
-from src.BusquedaKNN import frames_mas_cercanos_video, agrupar_caracteristicas
-from src.Deteccion import buscar_secuencias
-from src.Evaluacion import evaluar_resultados
-from src.Extraccion import caracteristicas_video
-from src.Indices import KDTree
+from BusquedaKNN import frames_mas_cercanos_video, agrupar_caracteristicas
+from Deteccion import buscar_secuencias
+from Evaluacion import evaluar_resultados
+from Extraccion import caracteristicas_video
+from Indices import KDTree
 
 
 def buscar_clips_amv(video: str):
@@ -40,4 +41,9 @@ def buscar_clips_amv(video: str):
 
 
 if __name__ == '__main__':
-    buscar_clips_amv('top10fights')
+    if len(sys.argv) == 1:
+        video = 'top10handToHand'
+    else:
+        video = sys.argv[1]
+
+    buscar_clips_amv(video)
