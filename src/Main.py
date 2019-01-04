@@ -1,9 +1,9 @@
-from src.BusquedaKNN import frames_mas_cercanos_video, agrupar_caracteristicas
-from src.Detección import buscar_secuencias
-from src.Extraccion import caracteristicas_video
-
 import time
 
+from src.BusquedaKNN import frames_mas_cercanos_video, agrupar_caracteristicas
+from src.Deteccion import buscar_secuencias
+from src.Evaluacion import evaluar_resultados
+from src.Extraccion import caracteristicas_video
 from src.Indices import KDTree
 
 
@@ -28,12 +28,16 @@ def buscar_clips_amv(video: str):
 
     frames_mas_cercanos_video(f'../videos/AMV_car_{tamano}_{fps}/{video}.txt',
                               f'../videos/AMV_cerc_{tamano}_{fps}',
-                              indice=indice, checks=100, k=20)
+                              indice=indice, checks=500, k=20)
 
     # detección de secuencias
     buscar_secuencias(f'../videos/AMV_cerc_{tamano}_{fps}/{video}.txt',
-                      max_errores_continuos=6, tiempo_minimo=2, rango=0)
+                      max_errores_continuos=12, tiempo_minimo=1, max_offset=0.15)
+
+    # evaluación
+    evaluar_resultados(video)
+    return
 
 
 if __name__ == '__main__':
-    buscar_clips_amv('top10handToHand')
+    buscar_clips_amv('top10fights')

@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from typing import List
 
 
@@ -82,20 +83,36 @@ class Candidato:
         return
 
     def sobrepuesto(self, cand):
-        if self.video != cand.video:
-            return False
-
         if self.tiempo_clip_inicio <= cand.tiempo_clip_inicio < self.tiempo_clip_inicio + self.duracion or \
                 cand.tiempo_clip_inicio <= self.tiempo_clip_inicio < cand.tiempo_clip_inicio + cand.duracion:
             return True
 
         return False
 
+    def combinar(self, cand, max_offset: float):
+        if self.tiempo_clip_inicio <= cand.tiempo_clip_inicio and \
+                cand.tiempo_clip_inicio + cand.duracion <= self.tiempo_clip_inicio + self.duracion:
+            return
+
+        if cand.tiempo_clip_inicio <= self.tiempo_clip_inicio and \
+                self.tiempo_clip_inicio + self.duracion <= cand.tiempo_clip_inicio + cand.duracion:
+            return
+
+        offset = abs((self.tiempo_clip_inicio - cand.tiempo_clip_inicio) -
+                     (self.tiempo_inicio - cand.tiempo_inicio))
+        if offset > max_offset:
+            return
+
+        self.duracion += abs(self.tiempo_clip_inicio - cand.tiempo_clip_inicio)
+        self.tiempo_clip_inicio = min(self.tiempo_clip_inicio, cand.tiempo_clip_inicio)
+        self.tiempo_inicio = min(self.tiempo_inicio, cand.tiempo_inicio)
+        return
+
     def __str__(self):
         return f'{self.tiempo_clip_inicio:.2f} {self.duracion:.2f} {self.video} {self.tiempo_inicio:.2f}'
 
 
-def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rango=0):
+def buscar_secuencias(video: str, max_errores_continuos: int = 7, tiempo_minimo: float = 1, max_offset: float = 0.0):
     """
     Busca comerciales en un archivo que contiene los k frames más cercanos a cada frame de un video y los registra en
     un archivo.
@@ -103,11 +120,13 @@ def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rang
     :param video: la ubicación del archivo.
     :param max_errores_continuos: máximos errores continuos para determinar que un clip terminó.
     :param tiempo_minimo: tiempo mínimo para afirmar que un clip es válido.
+    :param max_offset: máxima distancia entre clips al combinarlos
     """
 
     # nombre del video
     nombre_video = re.split('[/.]', video)[-2]
     print(f'buscando clips en {nombre_video}')
+    t0 = time.time()
 
     # leer cercanos del video.
     lista_cercanos = leer_cercanos(video)
@@ -129,7 +148,7 @@ def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rang
 
         # buscar secuencias
         for cand in candidatos:
-            cand.buscar_siguiente(cercanos, rango=rango)
+            cand.buscar_siguiente(cercanos, rango=1)
 
             # determinar fin de clip.
             if cand.errores_continuos >= max_errores_continuos:
@@ -141,7 +160,7 @@ def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rang
 
             # determinar que el clip es valido
             if terminado.duracion > tiempo_minimo and \
-                    3 * terminado.aciertos >= terminado.errores - max_errores_continuos:
+                    terminado.aciertos >= terminado.errores - max_errores_continuos:
                 clips.append(terminado)
 
         # agregar candidatos. todos?
@@ -158,16 +177,23 @@ def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rang
                 candidatos.append(Candidato(video=frame.video, indice=frame.indice, tiempo_inicio=frame.tiempo,
                                             tiempo_clip_inicio=cercanos.tiempo))
 
-    # filtrar clips
+    # combinar clips cuando se pueda
+    for i in range(len(clips)):
+        cand1 = clips[i]
+        for j in range(i + 1, len(clips)):
+            cand2 = clips[j]
+
+            if cand1.video == cand2.video and cand1.sobrepuesto(cand2):
+                cand1.combinar(cand2, max_offset)
+
+    # eliminar clips sobrepuestos
     sobrepuestos = set()
-    for cand1 in clips:
-        for cand2 in clips:
+    for i in range(len(clips)):
+        cand1 = clips[i]
+        for j in range(i + 1, len(clips)):
+            cand2 = clips[j]
 
-            # no comparar consigo mismo
-            if cand2 == cand1:
-                continue
-
-            # si hay superposición dejar el clip de mayor duración
+            # si hay superposición dejar solo el más largo
             if cand1.sobrepuesto(cand2):
                 if cand1.duracion > cand2.duracion:
                     sobrepuestos.add(cand2)
@@ -180,10 +206,10 @@ def buscar_secuencias(video: str, max_errores_continuos=7, tiempo_minimo=1, rang
 
     for clip in clips:
         log.write(f'{clip}\n')
-        print(clip)
 
     # cerrar log
     log.close()
+    print(f'se encontraron {len(clips)} clips en {int(time.time() - t0)} segundos')
     return
 
 
@@ -191,10 +217,10 @@ def main():
     tamano = (10, 10)
     fps = 6
 
-    video = 'cantHoldUs'
+    video = 'top10fights'
 
     buscar_secuencias(f'../videos/AMV_cerc_{tamano}_{fps}/{video}.txt',
-                      max_errores_continuos=6, tiempo_minimo=1, rango=0)
+                      max_errores_continuos=6, tiempo_minimo=1, max_offset=0.15)
     return
 
 
