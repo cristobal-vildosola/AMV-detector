@@ -42,8 +42,8 @@ def buscar_clips_amv(video: str):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        video = 'top10handToHand'
+        nombre = 'mushroom'
     else:
-        video = sys.argv[1]
+        nombre = sys.argv[1]
 
-    buscar_clips_amv(video)
+    buscar_clips_amv(nombre)

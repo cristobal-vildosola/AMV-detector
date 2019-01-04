@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 from typing import Tuple
 
@@ -123,10 +124,9 @@ def frames_mas_cercanos_video(archivo: str, carpeta_log: str, indice: Index, k: 
     return
 
 
-def main():
+def main(video: str):
     fps = 6
     tamano = (10, 10)
-    video = 'cantHoldUs'
 
     t0 = time.time()
     etiquetas, caracteristicas = agrupar_caracteristicas(f'../videos/Shippuden_car_{tamano}_{fps}',
@@ -142,4 +142,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        nombre = 'mushroom'
+    else:
+        nombre = sys.argv[1]
+
+    main(nombre)

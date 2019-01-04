@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 
 from Extraccion import abrir_video
@@ -19,7 +21,8 @@ def comparar_videos(prediccion: Prediccion):
     amv = abrir_video(f'../videos/AMV/{prediccion.video}.mp4')
     cap = abrir_video(f'../videos/Shippuden/{prediccion.capitulo}.mp4')
 
-    text = f'capitulo {prediccion.capitulo} - {int(prediccion.inicio_video / 60)}:{int(prediccion.inicio_video) % 60}'
+    text = f'{int(prediccion.inicio_video / 60)}:{int(prediccion.inicio_video) % 60} ({prediccion.duracion:.1f}) ' + \
+           f'capitulo {prediccion.capitulo} - {int(prediccion.inicio_cap / 60)}:{int(prediccion.inicio_cap) % 60}'
     font = cv2.FONT_HERSHEY_COMPLEX
     scale = 1
     thick = 3
@@ -110,4 +113,9 @@ def evaluar_resultados(video: str):
 
 
 if __name__ == '__main__':
-    evaluar_resultados('top10fights')
+    if len(sys.argv) == 1:
+        nombre = 'mushroom'
+    else:
+        nombre = sys.argv[1]
+
+    evaluar_resultados(nombre)

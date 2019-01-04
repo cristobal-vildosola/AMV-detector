@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 from typing import List
 
@@ -213,11 +214,9 @@ def buscar_secuencias(video: str, max_errores_continuos: int = 7, tiempo_minimo:
     return
 
 
-def main():
+def main(video: str):
     tamano = (10, 10)
     fps = 6
-
-    video = 'top10fights'
 
     buscar_secuencias(f'../videos/AMV_cerc_{tamano}_{fps}/{video}.txt',
                       max_errores_continuos=6, tiempo_minimo=1, max_offset=0.15)
@@ -225,4 +224,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        nombre = 'mushroom'
+    else:
+        nombre = sys.argv[1]
+
+    main(nombre)
